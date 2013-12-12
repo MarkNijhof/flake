@@ -23,7 +23,9 @@
 -export ([
 	  start_link/1,
 	  id/0,
-	  id/1
+	  id/1,
+    reverse_id/0,
+    reverse_id/1
 	 ]).
 
 %% gen_server callbacks
@@ -56,6 +58,12 @@ id() ->
 id(Base) ->
     respond(gen_server:call(flake, {get, Base})).
 
+reverse_id() ->
+    respond(gen_server:call(flake, get_reverse)).
+
+reverse_id(Base) ->
+    respond(gen_server:call(flake, {get_reverse, Base})).
+
 respond({ok,Flake}) ->
     {ok,Flake};
 respond(X) ->
@@ -82,7 +90,21 @@ handle_call({get,Base}, _From, State = #state{max_time=MaxTime,worker_id=WorkerI
 	E ->
 	    {reply, E, S0}
     end;
-  
+
+handle_call(get_reverse, _From, State = #state{max_time=MaxTime, worker_id=WorkerId, sequence=Sequence}) ->
+    {Resp, S0} = get_reverse(flake_util:curr_time_millis(), MaxTime, WorkerId, Sequence, State),
+    {reply, Resp, S0};
+
+handle_call({get_reverse,Base}, _From, State = #state{max_time=MaxTime,worker_id=WorkerId,sequence=Sequence}) ->
+    {Resp, S0} = get_reverse(flake_util:curr_time_millis(), MaxTime, WorkerId, Sequence, State),
+    case Resp of
+      {ok, Id} ->
+          <<IntId:128/integer>> = Id,
+          {reply, {ok, flake_util:as_list(IntId, Base)}, S0};
+      E ->
+          {reply, E, S0}
+    end;
+
 handle_call(X, _From, State) ->
   error_logger:error_msg("unrecognized msg in ~p:handle_call -> ~p~n",[?MODULE, X]),
   {reply, ok, State}.
@@ -104,4 +126,15 @@ get(CurrTime,MaxTime,WorkerId,_,State) when CurrTime > MaxTime ->
   {{ok, flake_util:gen_id(CurrTime, WorkerId, 0)}, State#state{max_time=CurrTime, sequence=0}};
 %% clock is running backwards
 get(CurrTime, MaxTime, _WorkerId, _Sequence, State) when MaxTime > CurrTime ->
+  {{error, clock_running_backwards}, State}.
+
+
+get_reverse(Time,Time,WorkerId,Seq0,State) ->
+    Sequence = Seq0 + 1,
+    {{ok,flake_util:gen_id(-Time,WorkerId,-Sequence)},State#state{sequence=Sequence}};
+%% clock has progressed, reset sequence
+get_reverse(CurrTime,MaxTime,WorkerId,_,State) when CurrTime > MaxTime ->
+  {{ok, flake_util:gen_id(-CurrTime, WorkerId, 0)}, State#state{max_time=CurrTime, sequence=0}};
+%% clock is running backwards
+get_reverse(CurrTime, MaxTime, _WorkerId, _Sequence, State) when MaxTime > CurrTime ->
   {{error, clock_running_backwards}, State}.

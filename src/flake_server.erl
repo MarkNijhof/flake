@@ -18,6 +18,7 @@
 -author ('Dietrich Featherston <d@boundary.com>').
 
 -behaviour (gen_server).
+-compile([{parse_transform, lager_transform}]).
 
 %% API
 -export ([

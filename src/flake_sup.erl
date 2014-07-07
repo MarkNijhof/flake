@@ -30,6 +30,8 @@
 %% supervisor callbacks
 -export([init/1]).
 
+-compile([{parse_transform, lager_transform}]).
+
 %% @spec start_link() -> ServerRet
 %% @doc API for starting the supervisor.
 start_link() ->

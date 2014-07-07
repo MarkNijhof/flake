@@ -5,3 +5,5 @@ deps/
 rel/flake/
 .DS_Store
 
+
+/.rebar/

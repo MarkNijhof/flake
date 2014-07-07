@@ -106,7 +106,7 @@ handle_call({get_reverse,Base}, _From, State = #state{max_time=MaxTime,worker_id
     end;
 
 handle_call(X, _From, State) ->
-  error_logger:error_msg("unrecognized msg in ~p:handle_call -> ~p~n",[?MODULE, X]),
+  lager:error("Unrecognized msg in ~p:handle_call -> ~p~n",[?MODULE, X]),
   {reply, ok, State}.
 
 handle_cast(_, State) -> {noreply, State}.

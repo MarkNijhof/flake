@@ -5,11 +5,11 @@
 -define(LOG_ERROR_FORMAT(F, A), _ = [F, A]).
 -else.
 -define(LOG_INFO(F),
-	error_logger:info_msg(F)).
+	lager:info(F)).
 -define(LOG_ERROR(F),
-	error_logger:error_msg(F)).
+	lager:error(F)).
 -define(LOG_INFO_FORMAT(F, A),
-	error_logger:info_msg(F, A)).
+	lager:info(F, A)).
 -define(LOG_ERROR_FORMAT(F, A),
-	error_logger:error_msg(F, A)).
+	lager:error(F, A)).
 -endif.

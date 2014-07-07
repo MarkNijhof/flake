@@ -58,9 +58,9 @@ upgrade() ->
 %% @doc supervisor callback.
 init([]) ->
     If = flake:get_config_value(interface, "eth0"),
-    error_logger:info_msg("starting flake with hardware address of ~p as worker id~n", [If]),
+    lager:info("Starting flake with hardware address of ~p as worker id~n", [If]),
     {ok,WorkerId} = flake_util:get_if_hw_int(If),
-    error_logger:info_msg("using worker id: ~p~n", [WorkerId]),
+    lager:info("Using worker id: ~p~n", [WorkerId]),
   
     FlakeConfig = [
 		   {worker_id, WorkerId}
@@ -91,7 +91,7 @@ init([]) ->
     %%    generating future ids in the event that the system clock is set to some point far in the future
     check_for_clock_error(Now >= TS, TimeSinceLastRun < AllowableDowntime),
 
-    error_logger:info_msg("saving timestamps to ~p every 1s~n", [TimestampPath]),
+    lager:info("Saving timestamps to ~p every 1s~n", [TimestampPath]),
     TimerConfig = [
 		   {table, TimestampTable},
 		   {interval, 1000}
@@ -105,8 +105,8 @@ init([]) ->
 check_for_clock_error(true,true) ->
     ok;
 check_for_clock_error(false,_) ->
-    error_logger:error_msg("system running backwards, failing startup of snowflake service~n"),
+    lager:error("System running backwards, failing startup of snowflake service~n"),
     exit(clock_running_backwards);
 check_for_clock_error(_,false) ->
-    error_logger:error_msg("system clock too far advanced, failing startup of snowflake service~n"),
+    lager:error("System clock too far advanced, failing startup of snowflake service~n"),
     exit(clock_advanced).

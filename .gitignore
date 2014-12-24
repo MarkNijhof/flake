@@ -4,6 +4,7 @@ ebin/
 deps/
 rel/flake/
 .DS_Store
-
-
+_rel/
+.erlang.mk.packages.v2
+relx
 /.rebar/
